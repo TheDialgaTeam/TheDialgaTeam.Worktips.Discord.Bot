@@ -4,13 +4,14 @@ using Discord.Commands;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Console;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.EntityFramework;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.RPC;
+using TheDialgaTeam.Worktips.Discord.Bot.Services.Setting;
 
 namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
 {
     [Name("Base")]
     public sealed class BaseModule : ModuleHelper
     {
-        public BaseModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService) : base(sqliteDatabaseService, loggerService, rpcService)
+        public BaseModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, SettingService settingService) : base(sqliteDatabaseService, loggerService, rpcService, settingService)
         {
         }
 
@@ -28,8 +29,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
             var applicationInfo = await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false);
 
             var helpMessage = new EmbedBuilder()
-                .WithTitle("The Dialga Team Worktips Discord Bot:")
-                .WithThumbnailUrl(Context.Client.CurrentUser.GetAvatarUrl())
+                .WithTitle("Worktips Discord Bot:")
                 .WithColor(Color.Orange)
                 .WithDescription($@"Hello, I am **{Context.Client.CurrentUser.Username}**, a multipurpose worktips bot that is created by jianmingyong#4964.
 

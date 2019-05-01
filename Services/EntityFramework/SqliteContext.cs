@@ -1,10 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TheDialgaTeam.Worktips.Discord.Bot.EntityFramework;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.IO;
 
 namespace TheDialgaTeam.Worktips.Discord.Bot.Services.EntityFramework
 {
     public sealed class SqliteContext : DbContext
     {
+        public DbSet<WalletAccount> WalletAccountTable { get; set; }
+
         private FilePathService FilePathService { get; }
 
         private bool ReadOnly { get; }

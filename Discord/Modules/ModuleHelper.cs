@@ -1,10 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Console;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.EntityFramework;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.RPC;
+using TheDialgaTeam.Worktips.Discord.Bot.Services.Setting;
 
 namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
 {
@@ -16,11 +18,14 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
 
         protected RpcService RpcService { get; }
 
-        protected ModuleHelper(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService)
+        protected SettingService SettingService { get; }
+
+        protected ModuleHelper(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, SettingService settingService)
         {
             SqliteDatabaseService = sqliteDatabaseService;
             LoggerService = loggerService;
             RpcService = rpcService;
+            SettingService = settingService;
         }
 
         protected override async Task<IUserMessage> ReplyAsync(string message = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
@@ -52,6 +57,26 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
         protected ChannelPermissions GetChannelPermissions(ulong? channelId = null)
         {
             return Context.Guild.GetUser(Context.Client.CurrentUser.Id).GetPermissions(Context.Guild.GetChannel(channelId ?? Context.Channel.Id));
+        }
+
+        protected async Task DeleteMessageAsync()
+        {
+            if (GetChannelPermissions().ManageMessages)
+                await Context.Message.DeleteAsync().ConfigureAwait(false);
+        }
+
+        protected async Task CatchError(Exception ex)
+        {
+            var embedBuilder = new EmbedBuilder()
+                .WithTitle("Oops, this command resulted in an error:")
+                .WithColor(Color.Red)
+                .WithDescription($"{ex.Message}")
+                .WithFooter("More information have been logged in the bot logger.")
+                .WithTimestamp(DateTimeOffset.Now);
+
+            await ReplyAsync("", false, embedBuilder.Build()).ConfigureAwait(false);
+
+            LoggerService.LogErrorMessage(ex);
         }
     }
 }

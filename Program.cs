@@ -38,9 +38,9 @@ namespace TheDialgaTeam.Worktips.Discord.Bot
             serviceCollection.AddInterfacesAndSelfAsSingleton<LoggerService>();
             serviceCollection.AddInterfacesAndSelfAsSingleton<BootstrapService>();
             serviceCollection.AddInterfacesAndSelfAsSingleton<SettingService>();
-            serviceCollection.AddInterfacesAndSelfAsSingleton<DiscordAppService>();
-            serviceCollection.AddInterfacesAndSelfAsSingleton<RpcService>();
             serviceCollection.AddInterfacesAndSelfAsSingleton<SqliteDatabaseService>();
+            serviceCollection.AddInterfacesAndSelfAsSingleton<RpcService>();
+            serviceCollection.AddInterfacesAndSelfAsSingleton<DiscordAppService>();
             serviceCollection.AddInterfacesAndSelfAsSingleton<ConsoleCommandService>();
 
             CancellationTokenSource = new CancellationTokenSource();

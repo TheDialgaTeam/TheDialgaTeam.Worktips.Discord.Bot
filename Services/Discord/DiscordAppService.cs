@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Reflection;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -7,7 +7,10 @@ using Discord.WebSocket;
 using TheDialgaTeam.Microsoft.Extensions.DependencyInjection;
 using TheDialgaTeam.mscorlib.System.Threading.Tasks;
 using TheDialgaTeam.Worktips.Discord.Bot.Discord;
+using TheDialgaTeam.Worktips.Discord.Bot.EntityFramework;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Console;
+using TheDialgaTeam.Worktips.Discord.Bot.Services.EntityFramework;
+using TheDialgaTeam.Worktips.Discord.Bot.Services.RPC;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Setting;
 
 namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
@@ -24,11 +27,17 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
 
         private SettingService SettingService { get; }
 
-        public DiscordAppService(Program program, LoggerService loggerService, SettingService settingService)
+        private RpcService RpcService { get; }
+
+        private SqliteDatabaseService SqliteDatabaseService { get; }
+
+        public DiscordAppService(Program program, LoggerService loggerService, SettingService settingService, RpcService rpcService, SqliteDatabaseService sqliteDatabaseService)
         {
             Program = program;
             LoggerService = loggerService;
             SettingService = settingService;
+            RpcService = rpcService;
+            SqliteDatabaseService = sqliteDatabaseService;
         }
 
         public void Initialize()
@@ -91,6 +100,30 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
             {
                 await discordSocketClient.SetGameAsync($"@{discordAppClient.DiscordShardedClient.CurrentUser.Username} help").ConfigureAwait(false);
                 LoggerService.LogMessage($"{discordAppClient.DiscordShardedClient.CurrentUser}: Shard {discordSocketClient.ShardId + 1}/{discordAppClient.DiscordShardedClient.Shards.Count} is ready!", ConsoleColor.Green);
+
+                try
+                {
+                    using (var context = SqliteDatabaseService.GetContext())
+                    {
+                        if (context.WalletAccountTable.Count(a => a.UserId == discordAppClient.DiscordShardedClient.CurrentUser.Id) == 0)
+                        {
+                            var address = await RpcService.WalletRpcClient.GetAddressAsync(0).ConfigureAwait(false);
+
+                            context.WalletAccountTable.Add(new WalletAccount
+                            {
+                                UserId = discordAppClient.DiscordShardedClient.CurrentUser.Id,
+                                AccountIndex = 0,
+                                TipWalletAddress = address.Address
+                            });
+
+                            await context.SaveChangesAsync().ConfigureAwait(false);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LoggerService.LogErrorMessage(ex);
+                }
             }).ConfigureAwait(false);
 
             return Task.CompletedTask;
@@ -123,16 +156,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
 
         public void Dispose()
         {
-            if (DiscordAppClient == null)
-                return;
-
-            DiscordAppClient.DiscordAppStopAsync().GetAwaiter().GetResult();
-            DiscordAppClient.DiscordAppLogoutAsync().GetAwaiter().GetResult();
-
-            DiscordAppClient.Log -= DiscordAppClientOnLog;
-            DiscordAppClient.ShardReady -= DiscordAppClientOnShardReady;
-
-            DiscordAppClient.Dispose();
+            DiscordAppClient?.Dispose();
         }
     }
 }

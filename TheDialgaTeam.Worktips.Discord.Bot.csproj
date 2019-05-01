@@ -21,8 +21,4 @@
     <ProjectReference Include="..\TheDialgaTeam.mscorlib\TheDialgaTeam.mscorlib.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="EntityFramework\" />
-  </ItemGroup>
-
 </Project>

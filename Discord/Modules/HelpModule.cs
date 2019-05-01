@@ -8,6 +8,7 @@ using TheDialgaTeam.Worktips.Discord.Bot.Discord.Command;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Console;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.EntityFramework;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.RPC;
+using TheDialgaTeam.Worktips.Discord.Bot.Services.Setting;
 
 namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
 {
@@ -18,7 +19,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
 
         private CommandService CommandService { get; }
 
-        public HelpModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, Program program) : base(sqliteDatabaseService, loggerService, rpcService)
+        public HelpModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, SettingService settingService, Program program) : base(sqliteDatabaseService, loggerService, rpcService, settingService)
         {
             ServiceProvider = program.ServiceProvider;
             CommandService = program.CommandService;
@@ -158,8 +159,7 @@ s: Optional seconds, ranging from 0 to 59.");
             var helpMessage = new EmbedBuilder()
                 .WithTitle("Available Command:")
                 .WithColor(Color.Orange)
-                .WithDescription($"To find out more about each command, use `@{Context.Client.CurrentUser} help <CommandName>`\nIn DM, you can use `help <CommandName>`")
-                .WithThumbnailUrl(Context.Client.CurrentUser.GetAvatarUrl());
+                .WithDescription($"To find out more about each command, use `@{Context.Client.CurrentUser} help <CommandName>`\nIn DM, you can use `help <CommandName>`");
 
             foreach (var module in CommandService.Modules)
             {

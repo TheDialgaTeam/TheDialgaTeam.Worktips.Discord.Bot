@@ -13,6 +13,16 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Setting
 
         public string BotPrefix => Config.BotPrefix;
 
+        public string CoinName => Config.CoinName;
+
+        public string CoinSymbol => Config.CoinSymbol;
+
+        public decimal CoinUnit => Config.CoinUnit;
+
+        public ulong TipFee => Config.TipFee;
+
+        public ulong TipMixIn => Config.TipMixIn;
+
         public string DaemonHost => Config.DaemonHost;
 
         public ushort DaemonPort => Config.DaemonPort;
