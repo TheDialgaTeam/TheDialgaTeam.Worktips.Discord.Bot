@@ -4,7 +4,7 @@
     {
         public string BotToken { get; set; } = "";
 
-        public string BotPrefix { get; set; } = "/";
+        public string BotPrefix { get; set; } = ".";
 
         public string CoinName { get; set; } = "Worktips";
 
@@ -12,9 +12,11 @@
 
         public ulong CoinUnit { get; set; } = 100000000;
 
-        public ulong TipFee { get; set; } = 50000000;
+        public ulong TipMinimumAmount { get; set; } = 50000000;
 
         public ulong TipMixIn { get; set; } = 10;
+
+        public ulong WithdrawMinimumAmount { get; set; } = 2000000000;
 
         public string DaemonHost { get; set; } = "127.0.0.1";
 

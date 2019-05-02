@@ -157,7 +157,10 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
                 var argPos = 0;
 
                 if (socketUserMessage.Channel is SocketDMChannel)
+                {
                     socketUserMessage.HasMentionPrefix(discordAppClient.DiscordShardedClient.CurrentUser, ref argPos);
+                    socketUserMessage.HasStringPrefix(ConfigService.BotPrefix, ref argPos, StringComparison.OrdinalIgnoreCase);
+                }
                 else
                 {
                     if (!socketUserMessage.HasMentionPrefix(discordAppClient.DiscordShardedClient.CurrentUser, ref argPos) &&

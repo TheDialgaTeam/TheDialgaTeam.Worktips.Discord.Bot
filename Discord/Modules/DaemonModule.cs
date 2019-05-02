@@ -11,7 +11,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
     [Name("Daemon")]
     public sealed class DaemonModule : ModuleHelper
     {
-        public DaemonModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, ConfigService configService) : base(sqliteDatabaseService, loggerService, rpcService, configService)
+        public DaemonModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, ConfigService configService) : base(loggerService, configService, sqliteDatabaseService, rpcService)
         {
         }
 
@@ -53,7 +53,6 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
             try
             {
                 var result = await RpcService.DaemonRpcClient.GetInfoAsync().ConfigureAwait(false);
-
                 await ReplyAsync($"The current difficulty is **{result.Difficulty}**").ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -69,7 +68,6 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
             try
             {
                 var result = await RpcService.DaemonRpcClient.GetInfoAsync().ConfigureAwait(false);
-
                 await ReplyAsync($"The current height is **{result.Height}**").ConfigureAwait(false);
             }
             catch (Exception ex)

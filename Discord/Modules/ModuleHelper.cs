@@ -12,20 +12,20 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
 {
     public abstract class ModuleHelper : ModuleBase<ShardedCommandContext>
     {
-        protected SqliteDatabaseService SqliteDatabaseService { get; }
-
         protected LoggerService LoggerService { get; }
-
-        protected RpcService RpcService { get; }
 
         protected ConfigService ConfigService { get; }
 
-        protected ModuleHelper(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, ConfigService configService)
+        protected SqliteDatabaseService SqliteDatabaseService { get; }
+
+        protected RpcService RpcService { get; }
+
+        protected ModuleHelper(LoggerService loggerService, ConfigService configService, SqliteDatabaseService sqliteDatabaseService, RpcService rpcService)
         {
-            SqliteDatabaseService = sqliteDatabaseService;
             LoggerService = loggerService;
-            RpcService = rpcService;
             ConfigService = configService;
+            SqliteDatabaseService = sqliteDatabaseService;
+            RpcService = rpcService;
         }
 
         protected override async Task<IUserMessage> ReplyAsync(string message = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
@@ -61,6 +61,9 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
 
         protected async Task DeleteMessageAsync()
         {
+            if (Context.Message.Channel is SocketDMChannel || Context.Message.Channel is SocketGroupChannel)
+                return;
+
             if (GetChannelPermissions().ManageMessages)
                 await Context.Message.DeleteAsync().ConfigureAwait(false);
         }

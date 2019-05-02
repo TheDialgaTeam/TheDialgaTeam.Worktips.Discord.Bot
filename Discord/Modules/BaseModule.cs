@@ -11,7 +11,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
     [Name("Base")]
     public sealed class BaseModule : ModuleHelper
     {
-        public BaseModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, ConfigService configService) : base(sqliteDatabaseService, loggerService, rpcService, configService)
+        public BaseModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, ConfigService configService) : base(loggerService, configService, sqliteDatabaseService, rpcService)
         {
         }
 

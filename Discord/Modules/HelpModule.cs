@@ -19,7 +19,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
 
         private CommandService CommandService { get; }
 
-        public HelpModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, ConfigService configService, Program program) : base(sqliteDatabaseService, loggerService, rpcService, configService)
+        public HelpModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, ConfigService configService, Program program) : base(loggerService, configService, sqliteDatabaseService, rpcService)
         {
             ServiceProvider = program.ServiceProvider;
             CommandService = program.CommandService;

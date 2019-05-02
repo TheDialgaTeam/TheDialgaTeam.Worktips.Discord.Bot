@@ -7,11 +7,11 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.EntityFramework
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int WalletAccountId { get; set; }
+        public uint WalletAccountId { get; set; }
 
         public ulong UserId { get; set; }
 
-        public ulong AccountIndex { get; set; }
+        public uint AccountIndex { get; set; }
 
         public string RegisteredWalletAddress { get; set; }
 
