@@ -42,15 +42,5 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Wallet
         {
             return response?.AmountList?.Length > 0;
         }
-
-        public static decimal TotalAtomicAmountSent(CommandRpcTransferSplit.Response response)
-        {
-            var result = 0ul;
-
-            foreach (var amount in response.AmountList)
-                result += amount;
-
-            return result;
-        }
     }
 }

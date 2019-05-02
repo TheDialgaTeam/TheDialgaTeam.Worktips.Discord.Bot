@@ -267,6 +267,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                 if (!WalletUtilities.CheckWalletExist(SqliteDatabaseService, Context.User.Id, out var walletAccount))
                 {
                     await ReplyAsync("Please use the `RegisterWallet` command to register your wallet first.").ConfigureAwait(false);
+                    await Context.Message.AddReactionAsync(new Emoji("❌")).ConfigureAwait(false);
                     return;
                 }
 
@@ -275,6 +276,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                 if (atomicAmountToTip < ConfigService.TipMinimumAmount)
                 {
                     await ReplyAsync($":x: Minimum tip amount is: {WalletUtilities.FormatBalance(ConfigService, ConfigService.TipMinimumAmount / Convert.ToDecimal(ConfigService.CoinUnit))} {ConfigService.CoinSymbol}").ConfigureAwait(false);
+                    await Context.Message.AddReactionAsync(new Emoji("❌")).ConfigureAwait(false);
                     return;
                 }
 
@@ -283,14 +285,16 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                 if (atomicAmountToTip * Convert.ToUInt64(users.Length) > balance.UnlockedBalance)
                 {
                     await ReplyAsync(":x: Insufficient balance to tip this amount.").ConfigureAwait(false);
+                    await Context.Message.AddReactionAsync(new Emoji("❌")).ConfigureAwait(false);
                     return;
                 }
 
-                // Collate ALL Transfer results
-                var transferResults = new List<CommandRpcTransferSplit.Response>();
+                var transferDestinations = new List<CommandRpcTransferSplit.TransferDestination>();
+                var userTipped = new List<IUser>();
 
                 foreach (var user in users)
                 {
+                    // @everyone @here
                     if (user.Id == Context.Guild.Id || user.Id == Context.Channel.Id)
                         continue;
 
@@ -300,83 +304,81 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                     if (user.Id == Context.User.Id)
                         continue;
 
-                    var transferRequest = new CommandRpcTransferSplit.Request
+                    transferDestinations.Add(new CommandRpcTransferSplit.TransferDestination
                     {
-                        AccountIndex = walletAccount.AccountIndex,
-                        Destinations = new[]
-                        {
-                            new CommandRpcTransferSplit.TransferDestination
-                            {
-                                Address = userWalletAccount.TipWalletAddress,
-                                Amount = atomicAmountToTip
-                            }
-                        },
-                        Mixin = ConfigService.TipMixIn,
-                        GetTxHex = true
-                    };
+                        Address = userWalletAccount.TipWalletAddress,
+                        Amount = atomicAmountToTip
+                    });
 
-                    try
-                    {
-                        var transferResult = await RpcService.WalletRpcClient.TransferSplitAsync(transferRequest).ConfigureAwait(false);
-                        
-                        if (!WalletUtilities.IsTransferSuccess(transferResult))
-                            continue;
-
-                        // Tip Success for this user, inform them.
-                        transferResults.Add(transferResult);
-
-                        if (user.IsBot)
-                            continue;
-
-                        var dmChannel = await user.GetOrCreateDMChannelAsync().ConfigureAwait(false);
-
-                        var notificationEmbed = new EmbedBuilder()
-                            .WithColor(Color.Green)
-                            .WithTitle(":moneybag: INCOMING TIP")
-                            .WithDescription($":moneybag: You got a tip of {WalletUtilities.FormatBalance(ConfigService, WalletUtilities.TotalAtomicAmountSent(transferResult) / Convert.ToDecimal(ConfigService.CoinUnit))} {ConfigService.CoinSymbol} from {Context.User}");
-
-                        await dmChannel.SendMessageAsync("", false, notificationEmbed.Build()).ConfigureAwait(false);
-                    }
-                    catch (Exception)
-                    {
-                        // ignored
-                    }
+                    userTipped.Add(user);
                 }
 
-                if (transferResults.Count == 0)
+                if (userTipped.Count == 0)
                 {
                     var failEmbed = new EmbedBuilder()
-                        .WithColor(Color.Red)
-                        .WithTitle(":moneybag: TRANSFER RESULT")
-                        .WithDescription("Failed to tip this amount due to insufficient balance to cover the transaction fees or the user have not registered their wallet.");
+                            .WithColor(Color.Red)
+                            .WithTitle(":moneybag: TRANSFER RESULT")
+                            .WithDescription("Failed to tip this amount due to the users have not registered their wallet.");
 
                     await ReplyDMAsync("", false, failEmbed.Build()).ConfigureAwait(false);
                     await Context.Message.AddReactionAsync(new Emoji("❌")).ConfigureAwait(false);
                     return;
                 }
 
+                var transferRequest = new CommandRpcTransferSplit.Request
+                {
+                    AccountIndex = walletAccount.AccountIndex,
+                    Destinations = transferDestinations.ToArray(),
+                    Mixin = ConfigService.TipMixIn,
+                    GetTxHex = true
+                };
+
+                var transferResult = await RpcService.WalletRpcClient.TransferSplitAsync(transferRequest).ConfigureAwait(false);
+
+                if (!WalletUtilities.IsTransferSuccess(transferResult))
+                {
+                    var failEmbed = new EmbedBuilder()
+                        .WithColor(Color.Red)
+                        .WithTitle(":moneybag: TRANSFER RESULT")
+                        .WithDescription("Failed to tip this amount due to insufficient balance to cover the transaction fees.");
+
+                    await ReplyDMAsync("", false, failEmbed.Build()).ConfigureAwait(false);
+                    await Context.Message.AddReactionAsync(new Emoji("❌")).ConfigureAwait(false);
+                    return;
+                }
+
+                // Tip Success for this user, inform them.
+                foreach (var user in userTipped)
+                {
+                    var dmChannel = await user.GetOrCreateDMChannelAsync().ConfigureAwait(false);
+
+                    var notificationEmbed = new EmbedBuilder()
+                        .WithColor(Color.Green)
+                        .WithTitle(":moneybag: INCOMING TIP")
+                        .WithDescription($":moneybag: You got a tip of {WalletUtilities.FormatBalance(ConfigService, atomicAmountToTip / Convert.ToDecimal(ConfigService.CoinUnit))} {ConfigService.CoinSymbol} from {Context.User}");
+
+                    await dmChannel.SendMessageAsync("", false, notificationEmbed.Build()).ConfigureAwait(false);
+                }
+
                 var successEmbed = new EmbedBuilder()
                     .WithColor(Color.Green)
                     .WithTitle(":moneybag: TRANSFER RESULT")
-                    .WithDescription($"You have tipped {WalletUtilities.FormatBalance(ConfigService, atomicAmountToTip / Convert.ToDecimal(ConfigService.CoinUnit))} {ConfigService.CoinSymbol} to {transferResults.Count} users");
+                    .WithDescription($"You have tipped {WalletUtilities.FormatBalance(ConfigService, atomicAmountToTip / Convert.ToDecimal(ConfigService.CoinUnit))} {ConfigService.CoinSymbol} to {userTipped.Count} users");
 
                 await ReplyDMAsync("", false, successEmbed.Build()).ConfigureAwait(false);
 
-                foreach (var transferResult in transferResults)
+                for (var i = 0; i < transferResult.TxHashList.Length; i++)
                 {
-                    for (var j = 0; j < transferResult.TxHashList.Length; j++)
-                    {
-                        var txAmount = transferResult.AmountList[j] / Convert.ToDecimal(ConfigService.CoinUnit);
-                        var txFee = transferResult.FeeList[j] / Convert.ToDecimal(ConfigService.CoinUnit);
-                        var txHash = transferResult.TxHashList[j];
+                    var txAmount = transferResult.AmountList[i] / Convert.ToDecimal(ConfigService.CoinUnit);
+                    var txFee = transferResult.FeeList[i] / Convert.ToDecimal(ConfigService.CoinUnit);
+                    var txHash = transferResult.TxHashList[i];
 
-                        var txEmbed = new EmbedBuilder()
-                            .WithColor(Color.Orange)
-                            .WithTitle($":moneybag: TRANSACTION PAID ({j + 1}/{transferResult.TxHashList.Length})")
-                            .WithDescription($"Amount: {WalletUtilities.FormatBalance(ConfigService, txAmount)} {ConfigService.CoinSymbol}\nFee: {WalletUtilities.FormatBalance(ConfigService, txFee)} {ConfigService.CoinSymbol}\nTransaction hash: `{txHash}`");
+                    var txEmbed = new EmbedBuilder()
+                        .WithColor(Color.Orange)
+                        .WithTitle($":moneybag: TRANSACTION PAID ({i + 1}/{transferResult.TxHashList.Length})")
+                        .WithDescription($"Amount: {WalletUtilities.FormatBalance(ConfigService, txAmount)} {ConfigService.CoinSymbol}\nFee: {WalletUtilities.FormatBalance(ConfigService, txFee)} {ConfigService.CoinSymbol}\nTransaction hash: `{txHash}`");
 
-                        await ReplyDMAsync("", false, txEmbed.Build()).ConfigureAwait(false);
-                    }
+                    await ReplyDMAsync("", false, txEmbed.Build()).ConfigureAwait(false);
                 }
 
                 await Context.Message.AddReactionAsync(new Emoji("💰")).ConfigureAwait(false);
