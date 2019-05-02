@@ -3,7 +3,7 @@ using Discord;
 using Discord.Commands;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Console;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.EntityFramework;
-using TheDialgaTeam.Worktips.Discord.Bot.Services.RPC;
+using TheDialgaTeam.Worktips.Discord.Bot.Services.Rpc;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Setting;
 
 namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
@@ -11,7 +11,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
     [Name("Base")]
     public sealed class BaseModule : ModuleHelper
     {
-        public BaseModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, SettingService settingService) : base(sqliteDatabaseService, loggerService, rpcService, settingService)
+        public BaseModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, ConfigService configService) : base(sqliteDatabaseService, loggerService, rpcService, configService)
         {
         }
 

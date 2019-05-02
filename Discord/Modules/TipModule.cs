@@ -6,7 +6,7 @@ using Discord.Commands;
 using TheDialgaTeam.Worktips.Discord.Bot.EntityFramework;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Console;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.EntityFramework;
-using TheDialgaTeam.Worktips.Discord.Bot.Services.RPC;
+using TheDialgaTeam.Worktips.Discord.Bot.Services.Rpc;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Setting;
 
 namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
@@ -14,7 +14,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
     [Name("Tip")]
     public sealed class TipModule : ModuleHelper
     {
-        public TipModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, SettingService settingService) : base(sqliteDatabaseService, loggerService, rpcService, settingService)
+        public TipModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, ConfigService configService) : base(sqliteDatabaseService, loggerService, rpcService, configService)
         {
         }
 
@@ -38,7 +38,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
 
             if (!CheckWalletAddress(address))
             {
-                await ReplyAsync($"Address is not a valid {SettingService.CoinName} address!").ConfigureAwait(false);
+                await ReplyAsync($"Address is not a valid {ConfigService.CoinName} address!").ConfigureAwait(false);
                 return;
             }
 
@@ -63,7 +63,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                 var embed = new EmbedBuilder()
                     .WithColor(Color.Orange)
                     .WithTitle("Successfully registered your wallet!")
-                    .WithDescription($"Deposit {SettingService.CoinSymbol} to start tipping!\n\nAddress: **{newAccount.Address}**");
+                    .WithDescription($"Deposit {ConfigService.CoinSymbol} to start tipping!\n\nAddress: **{newAccount.Address}**");
 
                 await ReplyDMAsync("", false, embed.Build()).ConfigureAwait(false);
             }
@@ -88,7 +88,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
 
             if (!CheckWalletAddress(address))
             {
-                await ReplyAsync($"Address is not a valid {SettingService.CoinName} address!").ConfigureAwait(false);
+                await ReplyAsync($"Address is not a valid {ConfigService.CoinName} address!").ConfigureAwait(false);
                 return;
             }
 

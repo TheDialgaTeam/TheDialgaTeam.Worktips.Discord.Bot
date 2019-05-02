@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
 using TheDialgaTeam.Cryptonote.Rpc.Worktips;
 using TheDialgaTeam.Microsoft.Extensions.DependencyInjection;
-using TheDialgaTeam.Worktips.Discord.Bot.Services.Console;
-using TheDialgaTeam.Worktips.Discord.Bot.Services.EntityFramework;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Setting;
 
-namespace TheDialgaTeam.Worktips.Discord.Bot.Services.RPC
+namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Rpc
 {
     public sealed class RpcService : IInitializable, IDisposable
     {
@@ -15,17 +11,17 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.RPC
 
         public WalletRpcClient WalletRpcClient { get; private set; }
 
-        private SettingService SettingService { get; }
+        private ConfigService ConfigService { get; }
 
-        public RpcService(SettingService settingService)
+        public RpcService(ConfigService configService)
         {
-            SettingService = settingService;
+            ConfigService = configService;
         }
 
         public void Initialize()
         {
-            DaemonRpcClient = new DaemonRpcClient(SettingService.DaemonHost, SettingService.DaemonPort, SettingService.DaemonUsername, SettingService.DaemonPassword);
-            WalletRpcClient = new WalletRpcClient(SettingService.WalletHost, SettingService.WalletPort, SettingService.WalletUsername, SettingService.WalletPassword);
+            DaemonRpcClient = new DaemonRpcClient(ConfigService.DaemonHost, ConfigService.DaemonPort, ConfigService.DaemonUsername, ConfigService.DaemonPassword);
+            WalletRpcClient = new WalletRpcClient(ConfigService.WalletHost, ConfigService.WalletPort, ConfigService.WalletUsername, ConfigService.WalletPassword);
         }
 
         public void Dispose()

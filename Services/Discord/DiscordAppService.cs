@@ -10,7 +10,7 @@ using TheDialgaTeam.Worktips.Discord.Bot.Discord;
 using TheDialgaTeam.Worktips.Discord.Bot.EntityFramework;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Console;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.EntityFramework;
-using TheDialgaTeam.Worktips.Discord.Bot.Services.RPC;
+using TheDialgaTeam.Worktips.Discord.Bot.Services.Rpc;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Setting;
 
 namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
@@ -25,31 +25,48 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
 
         private LoggerService LoggerService { get; }
 
-        private SettingService SettingService { get; }
+        private ConfigService ConfigService { get; }
 
         private RpcService RpcService { get; }
 
         private SqliteDatabaseService SqliteDatabaseService { get; }
 
-        public DiscordAppService(Program program, LoggerService loggerService, SettingService settingService, RpcService rpcService, SqliteDatabaseService sqliteDatabaseService)
+        public DiscordAppService(Program program, LoggerService loggerService, ConfigService configService, RpcService rpcService, SqliteDatabaseService sqliteDatabaseService)
         {
             Program = program;
             LoggerService = loggerService;
-            SettingService = settingService;
+            ConfigService = configService;
             RpcService = rpcService;
             SqliteDatabaseService = sqliteDatabaseService;
         }
 
         public void Initialize()
         {
-            DiscordAppClient = new DiscordAppClient(SettingService.BotToken, new DiscordSocketConfig { LogLevel = LogSeverity.Verbose });
+            DiscordAppClient = new DiscordAppClient(ConfigService.BotToken, new DiscordSocketConfig { LogLevel = LogSeverity.Verbose });
             DiscordAppClient.Log += DiscordAppClientOnLog;
             DiscordAppClient.ShardReady += DiscordAppClientOnShardReady;
             DiscordAppClient.MessageReceived += DiscordAppClientOnMessageReceived;
-            DiscordAppClient.DiscordAppLoginAsync().GetAwaiter().GetResult();
-            DiscordAppClient.DiscordAppStartAsync().GetAwaiter().GetResult();
+
+            InitializeAsync().GetAwaiter().GetResult();
 
             RunningTask = Task.Factory.StartNewBackgroundLoopingTask(async _ => { await DiscordAppClient.UpdateAsync().ConfigureAwait(false); }, Program.CancellationTokenSource.Token);
+        }
+
+        private async Task InitializeAsync()
+        {
+            if (Program.CancellationTokenSource.IsCancellationRequested)
+                return;
+
+            try
+            {
+                await DiscordAppClient.DiscordAppLoginAsync().ConfigureAwait(false);
+                await DiscordAppClient.DiscordAppStartAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                LoggerService.LogErrorMessage(ex);
+                Program.CancellationTokenSource.Cancel();
+            }
         }
 
         private Task DiscordAppClientOnLog(DiscordAppClient discordAppClient, LogMessage logMessage)
@@ -144,7 +161,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
                 else
                 {
                     if (!socketUserMessage.HasMentionPrefix(discordAppClient.DiscordShardedClient.CurrentUser, ref argPos) &&
-                        !socketUserMessage.HasStringPrefix(SettingService.BotPrefix, ref argPos, StringComparison.OrdinalIgnoreCase))
+                        !socketUserMessage.HasStringPrefix(ConfigService.BotPrefix, ref argPos, StringComparison.OrdinalIgnoreCase))
                         return;
                 }
 
@@ -156,7 +173,8 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
 
         public void Dispose()
         {
-            DiscordAppClient?.Dispose();
+            if (DiscordAppClient.IsLoggedIn || DiscordAppClient.IsStarted)
+                DiscordAppClient?.Dispose();
         }
     }
 }

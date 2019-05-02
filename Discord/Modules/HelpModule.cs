@@ -7,7 +7,7 @@ using Discord.Commands;
 using TheDialgaTeam.Worktips.Discord.Bot.Discord.Command;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Console;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.EntityFramework;
-using TheDialgaTeam.Worktips.Discord.Bot.Services.RPC;
+using TheDialgaTeam.Worktips.Discord.Bot.Services.Rpc;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Setting;
 
 namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
@@ -19,7 +19,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
 
         private CommandService CommandService { get; }
 
-        public HelpModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, SettingService settingService, Program program) : base(sqliteDatabaseService, loggerService, rpcService, settingService)
+        public HelpModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, ConfigService configService, Program program) : base(sqliteDatabaseService, loggerService, rpcService, configService)
         {
             ServiceProvider = program.ServiceProvider;
             CommandService = program.CommandService;

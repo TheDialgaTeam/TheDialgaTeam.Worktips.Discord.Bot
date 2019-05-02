@@ -11,7 +11,7 @@ using TheDialgaTeam.Worktips.Discord.Bot.Services.Console;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Discord;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.EntityFramework;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.IO;
-using TheDialgaTeam.Worktips.Discord.Bot.Services.RPC;
+using TheDialgaTeam.Worktips.Discord.Bot.Services.Rpc;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Setting;
 
 namespace TheDialgaTeam.Worktips.Discord.Bot
@@ -37,7 +37,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot
             serviceCollection.AddInterfacesAndSelfAsSingleton<FilePathService>();
             serviceCollection.AddInterfacesAndSelfAsSingleton<LoggerService>();
             serviceCollection.AddInterfacesAndSelfAsSingleton<BootstrapService>();
-            serviceCollection.AddInterfacesAndSelfAsSingleton<SettingService>();
+            serviceCollection.AddInterfacesAndSelfAsSingleton<ConfigService>();
             serviceCollection.AddInterfacesAndSelfAsSingleton<SqliteDatabaseService>();
             serviceCollection.AddInterfacesAndSelfAsSingleton<RpcService>();
             serviceCollection.AddInterfacesAndSelfAsSingleton<DiscordAppService>();

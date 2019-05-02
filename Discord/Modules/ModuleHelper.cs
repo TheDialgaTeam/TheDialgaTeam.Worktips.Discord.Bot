@@ -5,7 +5,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Console;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.EntityFramework;
-using TheDialgaTeam.Worktips.Discord.Bot.Services.RPC;
+using TheDialgaTeam.Worktips.Discord.Bot.Services.Rpc;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Setting;
 
 namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
@@ -18,14 +18,14 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
 
         protected RpcService RpcService { get; }
 
-        protected SettingService SettingService { get; }
+        protected ConfigService ConfigService { get; }
 
-        protected ModuleHelper(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, SettingService settingService)
+        protected ModuleHelper(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, ConfigService configService)
         {
             SqliteDatabaseService = sqliteDatabaseService;
             LoggerService = loggerService;
             RpcService = rpcService;
-            SettingService = settingService;
+            ConfigService = configService;
         }
 
         protected override async Task<IUserMessage> ReplyAsync(string message = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)

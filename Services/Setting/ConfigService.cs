@@ -7,7 +7,7 @@ using TheDialgaTeam.Worktips.Discord.Bot.Services.IO;
 
 namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Setting
 {
-    public sealed class SettingService : IInitializable, IDisposable
+    public sealed class ConfigService : IInitializable, IDisposable
     {
         public string BotToken => Config.BotToken;
 
@@ -47,7 +47,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Setting
 
         private Config Config { get; set; }
 
-        public SettingService(Program program, FilePathService filePathService, LoggerService loggerService)
+        public ConfigService(Program program, FilePathService filePathService, LoggerService loggerService)
         {
             Program = program;
             FilePathService = filePathService;
@@ -63,10 +63,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Setting
                 {
                     using (var streamWriter = new StreamWriter(new FileStream(FilePathService.SettingFilePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite)))
                     {
-                        var jsonSerializer = new JsonSerializer
-                        {
-                            Formatting = Formatting.Indented
-                        };
+                        var jsonSerializer = new JsonSerializer { Formatting = Formatting.Indented };
 
                         jsonSerializer.Serialize(streamWriter, Config);
                     }
@@ -77,8 +74,10 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Setting
                 {
                     LoggerService.LogErrorMessage(ex);
                 }
-
-                Program.CancellationTokenSource.Cancel();
+                finally
+                {
+                    Program.CancellationTokenSource.Cancel();
+                }
             }
             else
             {
@@ -95,6 +94,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Setting
                 catch (Exception ex)
                 {
                     LoggerService.LogErrorMessage(ex);
+                    Program.CancellationTokenSource.Cancel();
                 }
             }
         }
@@ -105,10 +105,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Setting
             {
                 using (var streamWriter = new StreamWriter(new FileStream(FilePathService.SettingFilePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite)))
                 {
-                    var jsonSerializer = new JsonSerializer
-                    {
-                        Formatting = Formatting.Indented
-                    };
+                    var jsonSerializer = new JsonSerializer { Formatting = Formatting.Indented };
 
                     jsonSerializer.Serialize(streamWriter, Config);
                 }
