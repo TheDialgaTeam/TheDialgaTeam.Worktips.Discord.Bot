@@ -350,6 +350,9 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                 // Tip Success for this user, inform them.
                 foreach (var user in userTipped)
                 {
+                    if (user.IsBot)
+                        continue;
+
                     var dmChannel = await user.GetOrCreateDMChannelAsync().ConfigureAwait(false);
 
                     var notificationEmbed = new EmbedBuilder()
