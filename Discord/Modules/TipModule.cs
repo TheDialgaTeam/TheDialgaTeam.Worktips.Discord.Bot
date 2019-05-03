@@ -353,14 +353,21 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                     if (user.IsBot)
                         continue;
 
-                    var dmChannel = await user.GetOrCreateDMChannelAsync().ConfigureAwait(false);
+                    try
+                    {
+                        var dmChannel = await user.GetOrCreateDMChannelAsync().ConfigureAwait(false);
 
-                    var notificationEmbed = new EmbedBuilder()
-                        .WithColor(Color.Green)
-                        .WithTitle(":moneybag: INCOMING TIP")
-                        .WithDescription($":moneybag: You got a tip of {WalletUtilities.FormatBalance(ConfigService, atomicAmountToTip / Convert.ToDecimal(ConfigService.CoinUnit))} {ConfigService.CoinSymbol} from {Context.User}");
+                        var notificationEmbed = new EmbedBuilder()
+                            .WithColor(Color.Green)
+                            .WithTitle(":moneybag: INCOMING TIP")
+                            .WithDescription($":moneybag: You got a tip of {WalletUtilities.FormatBalance(ConfigService, atomicAmountToTip / Convert.ToDecimal(ConfigService.CoinUnit))} {ConfigService.CoinSymbol} from {Context.User}");
 
-                    await dmChannel.SendMessageAsync("", false, notificationEmbed.Build()).ConfigureAwait(false);
+                        await dmChannel.SendMessageAsync("", false, notificationEmbed.Build()).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        // ignore.
+                    }
                 }
 
                 var successEmbed = new EmbedBuilder()
