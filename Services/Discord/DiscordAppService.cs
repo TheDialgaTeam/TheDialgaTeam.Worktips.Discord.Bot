@@ -150,25 +150,32 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
         {
             Task.Run(async () =>
             {
-                if (!(socketMessage is SocketUserMessage socketUserMessage))
-                    return;
-
-                ICommandContext context = new ShardedCommandContext(discordAppClient.DiscordShardedClient, socketUserMessage);
-                var argPos = 0;
-
-                if (socketUserMessage.Channel is SocketDMChannel)
+                try
                 {
-                    socketUserMessage.HasMentionPrefix(discordAppClient.DiscordShardedClient.CurrentUser, ref argPos);
-                    socketUserMessage.HasStringPrefix(ConfigService.BotPrefix, ref argPos, StringComparison.OrdinalIgnoreCase);
-                }
-                else
-                {
-                    if (!socketUserMessage.HasMentionPrefix(discordAppClient.DiscordShardedClient.CurrentUser, ref argPos) &&
-                        !socketUserMessage.HasStringPrefix(ConfigService.BotPrefix, ref argPos, StringComparison.OrdinalIgnoreCase))
+                    if (!(socketMessage is SocketUserMessage socketUserMessage))
                         return;
-                }
 
-                await Program.CommandService.ExecuteAsync(context, argPos, Program.ServiceProvider).ConfigureAwait(false);
+                    ICommandContext context = new ShardedCommandContext(discordAppClient.DiscordShardedClient, socketUserMessage);
+                    var argPos = 0;
+
+                    if (socketUserMessage.Channel is SocketDMChannel)
+                    {
+                        socketUserMessage.HasMentionPrefix(discordAppClient.DiscordShardedClient.CurrentUser, ref argPos);
+                        socketUserMessage.HasStringPrefix(ConfigService.BotPrefix, ref argPos, StringComparison.OrdinalIgnoreCase);
+                    }
+                    else
+                    {
+                        if (!socketUserMessage.HasMentionPrefix(discordAppClient.DiscordShardedClient.CurrentUser, ref argPos) &&
+                            !socketUserMessage.HasStringPrefix(ConfigService.BotPrefix, ref argPos, StringComparison.OrdinalIgnoreCase))
+                            return;
+                    }
+
+                    await Program.CommandService.ExecuteAsync(context, argPos, Program.ServiceProvider).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    LoggerService.LogErrorMessage(ex);
+                }
             }).ConfigureAwait(false);
 
             return Task.CompletedTask;

@@ -28,30 +28,95 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
             RpcService = rpcService;
         }
 
-        protected override async Task<IUserMessage> ReplyAsync(string message = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
+        protected async Task<IUserMessage> ReplyAsync(string text)
         {
-            if (Context.Message.Channel is SocketDMChannel || Context.Message.Channel is SocketGroupChannel)
-                return await Context.Channel.SendMessageAsync(message, isTTS, embed, options).ConfigureAwait(false);
+            try
+            {
+                if (Context.Message.Channel is SocketDMChannel || Context.Message.Channel is SocketGroupChannel)
+                    return await Context.Channel.SendMessageAsync(text).ConfigureAwait(false);
 
-            if (GetChannelPermissions().SendMessages)
-                return await Context.Channel.SendMessageAsync(message, isTTS, embed, options).ConfigureAwait(false);
+                if (GetChannelPermissions().SendMessages)
+                    return await Context.Channel.SendMessageAsync(text).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await CatchError(ex).ConfigureAwait(false);
+            }
 
             return null;
         }
 
-        protected override async void AfterExecute(CommandInfo command)
+        protected async Task<IUserMessage> ReplyAsync(Embed embed)
         {
-            if (Context.Message.Channel is SocketDMChannel || Context.Message.Channel is SocketGroupChannel)
-                return;
+            try
+            {
+                if (Context.Message.Channel is SocketDMChannel || Context.Message.Channel is SocketGroupChannel)
+                    return await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
+
+                if (GetChannelPermissions().SendMessages)
+                    return await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await CatchError(ex).ConfigureAwait(false);
+            }
+
+            return null;
         }
 
-        protected async Task<IUserMessage> ReplyDMAsync(string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)
+        protected async Task<IUserMessage> ReplyDMAsync(string text)
         {
-            if (Context.Message.Channel is SocketDMChannel || Context.Message.Channel is SocketGroupChannel)
-                return await ReplyAsync(text, isTTS, embed, options).ConfigureAwait(false);
+            try
+            {
+                if (Context.Message.Channel is SocketDMChannel || Context.Message.Channel is SocketGroupChannel)
+                    return await ReplyAsync(text).ConfigureAwait(false);
 
-            var dmChannel = await Context.Message.Author.GetOrCreateDMChannelAsync().ConfigureAwait(false);
-            return await dmChannel.SendMessageAsync(text, isTTS, embed, options).ConfigureAwait(false);
+                var dmChannel = await Context.Message.Author.GetOrCreateDMChannelAsync().ConfigureAwait(false);
+                return await dmChannel.SendMessageAsync(text).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await CatchError(ex).ConfigureAwait(false);
+            }
+
+            return null;
+        }
+
+        protected async Task<IUserMessage> ReplyDMAsync(Embed embed)
+        {
+            try
+            {
+                if (Context.Message.Channel is SocketDMChannel || Context.Message.Channel is SocketGroupChannel)
+                    return await ReplyAsync(embed).ConfigureAwait(false);
+
+                var dmChannel = await Context.Message.Author.GetOrCreateDMChannelAsync().ConfigureAwait(false);
+                return await dmChannel.SendMessageAsync(embed: embed).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await CatchError(ex).ConfigureAwait(false);
+            }
+
+            return null;
+        }
+
+        protected async Task AddReactionAsync(string emoji)
+        {
+            try
+            {
+                if (Context.Message.Channel is SocketDMChannel || Context.Message.Channel is SocketGroupChannel)
+                {
+                    await Context.Message.AddReactionAsync(new Emoji(emoji)).ConfigureAwait(false);
+                    return;
+                }
+                
+                if (GetChannelPermissions().AddReactions)
+                    await Context.Message.AddReactionAsync(new Emoji(emoji)).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await CatchError(ex).ConfigureAwait(false);
+            }
         }
 
         protected ChannelPermissions GetChannelPermissions(ulong? channelId = null)
@@ -77,7 +142,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                 .WithFooter("More information have been logged in the bot logger.")
                 .WithTimestamp(DateTimeOffset.Now);
 
-            await ReplyAsync("", false, embedBuilder.Build()).ConfigureAwait(false);
+            await ReplyAsync(embedBuilder.Build()).ConfigureAwait(false);
 
             LoggerService.LogErrorMessage(ex);
         }

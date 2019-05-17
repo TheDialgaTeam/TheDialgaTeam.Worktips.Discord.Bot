@@ -23,7 +23,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
         [Command("LTCMarketPrice")]
         [Alias("Price", "LTCPrice")]
         [Summary("Retrieve the volume, high, and low are in the last 24 hours, initial price is the price from 24 hours ago.")]
-        public async Task LTCMarketPriceAsync()
+        public async Task LTCMarketPriceAsync([Remainder] string _ = null)
         {
             try
             {
@@ -40,7 +40,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
 
                         if (!ticker.Success)
                         {
-                            await ReplyAsync(":x: Unable to retrieve market information from tradeogre.\nThe coin may not be listed.").ConfigureAwait(false);
+                            await ReplyAsync(":x: Unable to retrieve market information from tradeogre.\nThis coin may not be listed.").ConfigureAwait(false);
                             return;
                         }
 
@@ -49,18 +49,16 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
 
                         if (priceChange > 0)
                             priceChangeSign = "+";
-                        else if (priceChange < 0)
-                            priceChangeSign = "-";
 
                         var marketEmbed = new EmbedBuilder()
                             .WithColor(Color.Orange)
                             .WithTitle($":moneybag: TradeOgre LTC-{ConfigService.CoinSymbol} Price")
-                            .WithUrl($"https://tradeogre.com/api/v1/ticker/LTC-{ConfigService.CoinSymbol}")
+                            .WithUrl($"https://tradeogre.com/exchange/LTC-{ConfigService.CoinSymbol}")
                             .AddField("Current Price", $"{ticker.Price} LTC", true)
                             .AddField("24h Chg.", $"{ticker.Price - ticker.InitialPrice} LTC ({priceChangeSign}{(ticker.Price - ticker.InitialPrice) / ticker.InitialPrice * 100:F2}%)", true)
-                            .AddField("Volume", $"{ticker.Volume} LTC", true)
-                            .AddField("24h High", $"{ticker.High} LTC", true)
-                            .AddField("24h Low", $"{ticker.Low} LTC", true);
+                            .AddField("Volume", $"{ticker.Volume} LTC")
+                            .AddField("24h Low", $"{ticker.Low} LTC", true)
+                            .AddField("24h High", $"{ticker.High} LTC", true);
 
                         await ReplyAsync("", false, marketEmbed.Build()).ConfigureAwait(false);
                     }
@@ -75,7 +73,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
         [Command("BTCMarketPrice")]
         [Alias("BTCPrice")]
         [Summary("Retrieve the volume, high, and low are in the last 24 hours, initial price is the price from 24 hours ago.")]
-        public async Task BTCMarketPriceAsync()
+        public async Task BTCMarketPriceAsync([Remainder] string _ = null)
         {
             try
             {
@@ -101,18 +99,16 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
 
                         if (priceChange > 0)
                             priceChangeSign = "+";
-                        else if (priceChange < 0)
-                            priceChangeSign = "-";
 
                         var marketEmbed = new EmbedBuilder()
                             .WithColor(Color.Orange)
                             .WithTitle($":moneybag: TradeOgre BTC-{ConfigService.CoinSymbol} Price")
-                            .WithUrl($"https://tradeogre.com/api/v1/ticker/BTC-{ConfigService.CoinSymbol}")
+                            .WithUrl($"https://tradeogre.com/exchange/BTC-{ConfigService.CoinSymbol}")
                             .AddField("Current Price", $"{ticker.Price} BTC", true)
                             .AddField("24h Chg.", $"{ticker.Price - ticker.InitialPrice} BTC ({priceChangeSign}{(ticker.Price - ticker.InitialPrice) / ticker.InitialPrice * 100:F2}%)", true)
-                            .AddField("Volume", $"{ticker.Volume} BTC", true)
-                            .AddField("24h High", $"{ticker.High} BTC", true)
-                            .AddField("24h Low", $"{ticker.Low} BTC", true);
+                            .AddField("Volume", $"{ticker.Volume} BTC")
+                            .AddField("24h Low", $"{ticker.Low} BTC", true)
+                            .AddField("24h High", $"{ticker.High} BTC", true);
 
                         await ReplyAsync("", false, marketEmbed.Build()).ConfigureAwait(false);
                     }

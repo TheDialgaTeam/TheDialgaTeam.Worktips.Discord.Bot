@@ -11,20 +11,20 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
     [Name("Base")]
     public sealed class BaseModule : ModuleHelper
     {
-        public BaseModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, ConfigService configService) : base(loggerService, configService, sqliteDatabaseService, rpcService)
+        public BaseModule(LoggerService loggerService, ConfigService configService, SqliteDatabaseService sqliteDatabaseService, RpcService rpcService) : base(loggerService, configService, sqliteDatabaseService, rpcService)
         {
         }
 
         [Command("Ping")]
         [Summary("Gets the estimated round-trip latency, in milliseconds, to the gateway server.")]
-        public async Task PingAsync()
+        public async Task PingAsync([Remainder] string _ = null)
         {
             await ReplyAsync($"Ping: {Context.Client.Latency} ms").ConfigureAwait(false);
         }
 
         [Command("About")]
         [Summary("Get the bot information.")]
-        public async Task AboutAsync()
+        public async Task AboutAsync([Remainder] string _ = null)
         {
             var applicationInfo = await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false);
 
@@ -39,7 +39,7 @@ Type `@{Context.Client.CurrentUser} help` to see my command. You can also type `
 
 You can invite this bot by using this link: <https://discordapp.com/api/oauth2/authorize?client_id={Context.Client.CurrentUser.Id}&permissions=0&scope=bot>");
 
-            await ReplyDMAsync("", false, helpMessage.Build()).ConfigureAwait(false);
+            await ReplyDMAsync(helpMessage.Build()).ConfigureAwait(false);
         }
     }
 }

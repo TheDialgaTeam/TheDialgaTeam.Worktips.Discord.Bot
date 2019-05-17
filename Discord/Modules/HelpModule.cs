@@ -19,7 +19,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
 
         private CommandService CommandService { get; }
 
-        public HelpModule(SqliteDatabaseService sqliteDatabaseService, LoggerService loggerService, RpcService rpcService, ConfigService configService, Program program) : base(loggerService, configService, sqliteDatabaseService, rpcService)
+        public HelpModule(Program program, LoggerService loggerService, ConfigService configService, SqliteDatabaseService sqliteDatabaseService, RpcService rpcService) : base(loggerService, configService, sqliteDatabaseService, rpcService)
         {
             ServiceProvider = program.ServiceProvider;
             CommandService = program.CommandService;
@@ -253,6 +253,9 @@ s: Optional seconds, ranging from 0 to 59.");
 
                     foreach (var commandParameter in command.Parameters)
                     {
+                        if (commandParameter.Name == "_")
+                            continue;
+
                         if (commandParameter.IsMultiple)
                             commandInfo.Append($" `params {commandParameter.Type.Name}[] {commandParameter.Name}`");
                         else if (commandParameter.IsOptional)
@@ -281,7 +284,7 @@ s: Optional seconds, ranging from 0 to 59.");
 
                     helpMessage = helpMessage.AddField($"{command.Name} command:", commandInfo.ToString());
 
-                    await ReplyAsync("", false, helpMessage.Build()).ConfigureAwait(false);
+                    await ReplyAsync(helpMessage.Build()).ConfigureAwait(false);
                     return;
                 }
             }

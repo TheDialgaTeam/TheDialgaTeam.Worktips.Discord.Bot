@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -31,6 +32,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                 if (!WalletUtilities.CheckWalletAddress(address))
                 {
                     await ReplyAsync($"Address is not a valid {ConfigService.CoinName} address!").ConfigureAwait(false);
+                    await AddReactionAsync("❌").ConfigureAwait(false);
                     return;
                 }
 
@@ -45,6 +47,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                     }
 
                     await ReplyDMAsync("Successfully updated your wallet!").ConfigureAwait(false);
+                    await AddReactionAsync("✅").ConfigureAwait(false);
                 }
                 else
                 {
@@ -72,7 +75,8 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                         .WithTitle("Successfully registered your wallet!")
                         .WithDescription($"Deposit {ConfigService.CoinSymbol} to start tipping!\n\nAddress: `{newAccount.Address}`");
 
-                    await ReplyDMAsync("", false, embed.Build()).ConfigureAwait(false);
+                    await ReplyDMAsync(embed.Build()).ConfigureAwait(false);
+                    await AddReactionAsync("✅").ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -84,13 +88,14 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
         [Command("WalletInfo")]
         [Alias("Info")]
         [Summary("Display your wallet information with the tip bot.")]
-        public async Task WalletInfoAsync()
+        public async Task WalletInfoAsync([Remainder] string _ = null)
         {
             try
             {
                 if (!WalletUtilities.CheckWalletExist(SqliteDatabaseService, Context.User.Id, out var walletAccount))
                 {
                     await ReplyAsync("Please use the `RegisterWallet` command to register your wallet first.").ConfigureAwait(false);
+                    await AddReactionAsync("❌").ConfigureAwait(false);
                     return;
                 }
 
@@ -99,7 +104,8 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                     .WithTitle(":information_desk_person: ACCOUNT INFO")
                     .WithDescription($":purse: Deposit Address: `{walletAccount.TipWalletAddress}`\n\n:purse: Registered Address: `{walletAccount.RegisteredWalletAddress}`");
 
-                await ReplyDMAsync("", false, embed.Build()).ConfigureAwait(false);
+                await ReplyDMAsync(embed.Build()).ConfigureAwait(false);
+                await AddReactionAsync("✅").ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -110,13 +116,14 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
         [Command("WalletBalance")]
         [Alias("Balance", "Bal")]
         [Summary("Check your wallet balance.")]
-        public async Task WalletBalanceAsync()
+        public async Task WalletBalanceAsync([Remainder] string _ = null)
         {
             try
             {
                 if (!WalletUtilities.CheckWalletExist(SqliteDatabaseService, Context.User.Id, out var walletAccount))
                 {
                     await ReplyAsync("Please use the `RegisterWallet` command to register your wallet first.").ConfigureAwait(false);
+                    await AddReactionAsync("❌").ConfigureAwait(false);
                     return;
                 }
 
@@ -132,7 +139,8 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                     .WithTitle(":moneybag: YOUR BALANCE")
                     .WithDescription($":moneybag: Available: {WalletUtilities.FormatBalance(ConfigService, availableBalance)} {ConfigService.CoinSymbol}\n:purse: Pending: {WalletUtilities.FormatBalance(ConfigService, pendingBalance)} {ConfigService.CoinSymbol}\n:arrows_counterclockwise: Status: {walletHeight.Height} / {daemonHeight.Height}");
 
-                await ReplyDMAsync("", false, embed.Build()).ConfigureAwait(false);
+                await ReplyDMAsync(embed.Build()).ConfigureAwait(false);
+                await AddReactionAsync("✅").ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -143,13 +151,14 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
         [Command("BotWalletBalance")]
         [Alias("BotBalance", "BotBal")]
         [Summary("Check the bot wallet balance.")]
-        public async Task BotWalletBalanceAsync()
+        public async Task BotWalletBalanceAsync([Remainder] string _ = null)
         {
             try
             {
                 if (!WalletUtilities.CheckWalletExist(SqliteDatabaseService, Context.Client.CurrentUser.Id, out var walletAccount))
                 {
                     await ReplyAsync("Please use the `RegisterWallet` command to register your wallet first.").ConfigureAwait(false);
+                    await AddReactionAsync("❌").ConfigureAwait(false);
                     return;
                 }
 
@@ -165,7 +174,8 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                     .WithTitle(":moneybag: TIP BOT BALANCE")
                     .WithDescription($":moneybag: Available: {WalletUtilities.FormatBalance(ConfigService, availableBalance)} {ConfigService.CoinSymbol}\n:purse: Pending: {WalletUtilities.FormatBalance(ConfigService, pendingBalance)} {ConfigService.CoinSymbol}\n:arrows_counterclockwise: Status: {walletHeight.Height} / {daemonHeight.Height}");
 
-                await ReplyAsync("", false, embed.Build()).ConfigureAwait(false);
+                await ReplyAsync(embed.Build()).ConfigureAwait(false);
+                await AddReactionAsync("✅").ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -176,13 +186,14 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
         [Command("WalletWithdraw")]
         [Alias("Withdraw")]
         [Summary("Withdraw to the registered address.")]
-        public async Task WalletWithdrawAsync([Summary("Amount to withdraw")] decimal amount)
+        public async Task WalletWithdrawAsync([Summary("Amount to withdraw")] decimal amount, [Remainder] string _ = null)
         {
             try
             {
                 if (!WalletUtilities.CheckWalletExist(SqliteDatabaseService, Context.User.Id, out var walletAccount))
                 {
                     await ReplyAsync("Please use the `RegisterWallet` command to register your wallet first.").ConfigureAwait(false);
+                    await AddReactionAsync("❌").ConfigureAwait(false);
                     return;
                 }
 
@@ -191,6 +202,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                 if (atomicAmountToWithdraw < ConfigService.WithdrawMinimumAmount)
                 {
                     await ReplyAsync($":x: Minimum withdrawal amount is: {WalletUtilities.FormatBalance(ConfigService, ConfigService.WithdrawMinimumAmount / Convert.ToDecimal(ConfigService.CoinUnit))} {ConfigService.CoinSymbol}").ConfigureAwait(false);
+                    await AddReactionAsync("❌").ConfigureAwait(false);
                     return;
                 }
 
@@ -199,6 +211,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                 if (atomicAmountToWithdraw > balance.UnlockedBalance)
                 {
                     await ReplyAsync(":x: Insufficient balance to withdraw this amount.").ConfigureAwait(false);
+                    await AddReactionAsync("❌").ConfigureAwait(false);
                     return;
                 }
 
@@ -226,7 +239,8 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                         .WithTitle(":moneybag: TRANSFER RESULT")
                         .WithDescription("Failed to withdrawn this amount due to insufficient balance to cover the transaction fees.");
 
-                    await ReplyDMAsync("", false, failEmbed.Build()).ConfigureAwait(false);
+                    await ReplyDMAsync(failEmbed.Build()).ConfigureAwait(false);
+                    await AddReactionAsync("❌").ConfigureAwait(false);
                     return;
                 }
 
@@ -235,7 +249,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                     .WithTitle(":moneybag: TRANSFER RESULT")
                     .WithDescription($"You have withdrawn {WalletUtilities.FormatBalance(ConfigService, atomicAmountToWithdraw / Convert.ToDecimal(ConfigService.CoinUnit))} {ConfigService.CoinSymbol}");
 
-                await ReplyDMAsync("", false, successEmbed.Build()).ConfigureAwait(false);
+                await ReplyDMAsync(successEmbed.Build()).ConfigureAwait(false);
 
                 for (var i = 0; i < transferResult.TxHashList.Length; i++)
                 {
@@ -248,8 +262,10 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                         .WithTitle($":moneybag: TRANSACTION PAID ({i + 1}/{transferResult.TxHashList.Length})")
                         .WithDescription($"Amount: {WalletUtilities.FormatBalance(ConfigService, txAmount)} {ConfigService.CoinSymbol}\nFee: {WalletUtilities.FormatBalance(ConfigService, txFee)} {ConfigService.CoinSymbol}\nTransaction hash: `{txHash}`");
 
-                    await ReplyDMAsync("", false, txEmbed.Build()).ConfigureAwait(false);
+                    await ReplyDMAsync(txEmbed.Build()).ConfigureAwait(false);
                 }
+
+                await AddReactionAsync("💰").ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -260,14 +276,14 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
         [Command("Tip")]
         [Summary("Tip someone using the tip wallet.")]
         [RequireContext(ContextType.Guild)]
-        public async Task TipAsync([Summary("Amount to tip")] decimal amount, params IUser[] users)
+        public async Task TipAsync([Summary("Amount to tip")] decimal amount, [Remainder] string _ = null)
         {
             try
             {
                 if (!WalletUtilities.CheckWalletExist(SqliteDatabaseService, Context.User.Id, out var walletAccount))
                 {
                     await ReplyAsync("Please use the `RegisterWallet` command to register your wallet first.").ConfigureAwait(false);
-                    await Context.Message.AddReactionAsync(new Emoji("❌")).ConfigureAwait(false);
+                    await AddReactionAsync("❌").ConfigureAwait(false);
                     return;
                 }
 
@@ -276,23 +292,23 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                 if (atomicAmountToTip < ConfigService.TipMinimumAmount)
                 {
                     await ReplyAsync($":x: Minimum tip amount is: {WalletUtilities.FormatBalance(ConfigService, ConfigService.TipMinimumAmount / Convert.ToDecimal(ConfigService.CoinUnit))} {ConfigService.CoinSymbol}").ConfigureAwait(false);
-                    await Context.Message.AddReactionAsync(new Emoji("❌")).ConfigureAwait(false);
+                    await AddReactionAsync("❌").ConfigureAwait(false);
                     return;
                 }
 
                 var balance = await RpcService.WalletRpcClient.GetBalanceAsync(walletAccount.AccountIndex).ConfigureAwait(false);
 
-                if (atomicAmountToTip * Convert.ToUInt64(users.Length) > balance.UnlockedBalance)
+                if (atomicAmountToTip * Convert.ToUInt64(Context.Message.MentionedUsers.Count) > balance.UnlockedBalance)
                 {
                     await ReplyAsync(":x: Insufficient balance to tip this amount.").ConfigureAwait(false);
-                    await Context.Message.AddReactionAsync(new Emoji("❌")).ConfigureAwait(false);
+                    await AddReactionAsync("❌").ConfigureAwait(false);
                     return;
                 }
 
                 var transferDestinations = new List<CommandRpcTransferSplit.TransferDestination>();
                 var userTipped = new List<IUser>();
 
-                foreach (var user in users)
+                foreach (var user in Context.Message.MentionedUsers)
                 {
                     // @everyone @here
                     if (user.Id == Context.Guild.Id || user.Id == Context.Channel.Id)
@@ -320,8 +336,8 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                             .WithTitle(":moneybag: TRANSFER RESULT")
                             .WithDescription("Failed to tip this amount due to the users have not registered their wallet.");
 
-                    await ReplyDMAsync("", false, failEmbed.Build()).ConfigureAwait(false);
-                    await Context.Message.AddReactionAsync(new Emoji("❌")).ConfigureAwait(false);
+                    await ReplyDMAsync(failEmbed.Build()).ConfigureAwait(false);
+                    await AddReactionAsync("❌").ConfigureAwait(false);
                     return;
                 }
 
@@ -342,8 +358,8 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                         .WithTitle(":moneybag: TRANSFER RESULT")
                         .WithDescription("Failed to tip this amount due to insufficient balance to cover the transaction fees.");
 
-                    await ReplyDMAsync("", false, failEmbed.Build()).ConfigureAwait(false);
-                    await Context.Message.AddReactionAsync(new Emoji("❌")).ConfigureAwait(false);
+                    await ReplyDMAsync(failEmbed.Build()).ConfigureAwait(false);
+                    await AddReactionAsync("❌").ConfigureAwait(false);
                     return;
                 }
 
@@ -360,11 +376,11 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                         var notificationEmbed = new EmbedBuilder()
                             .WithColor(Color.Green)
                             .WithTitle(":moneybag: INCOMING TIP")
-                            .WithDescription($":moneybag: You got a tip of {WalletUtilities.FormatBalance(ConfigService, atomicAmountToTip / Convert.ToDecimal(ConfigService.CoinUnit))} {ConfigService.CoinSymbol} from {Context.User}");
+                            .WithDescription($":moneybag: You got a tip of {WalletUtilities.FormatBalance(ConfigService, atomicAmountToTip / Convert.ToDecimal(ConfigService.CoinUnit))} {ConfigService.CoinSymbol} from {Context.User}\n:hash: Transaction hash: {string.Join(", ", transferResult.TxHashList.Select(a => $"`{a}`"))}");
 
                         await dmChannel.SendMessageAsync("", false, notificationEmbed.Build()).ConfigureAwait(false);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         // ignore.
                     }
@@ -375,7 +391,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                     .WithTitle(":moneybag: TRANSFER RESULT")
                     .WithDescription($"You have tipped {WalletUtilities.FormatBalance(ConfigService, atomicAmountToTip / Convert.ToDecimal(ConfigService.CoinUnit))} {ConfigService.CoinSymbol} to {userTipped.Count} users");
 
-                await ReplyDMAsync("", false, successEmbed.Build()).ConfigureAwait(false);
+                await ReplyDMAsync(successEmbed.Build()).ConfigureAwait(false);
 
                 for (var i = 0; i < transferResult.TxHashList.Length; i++)
                 {
@@ -388,10 +404,10 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
                         .WithTitle($":moneybag: TRANSACTION PAID ({i + 1}/{transferResult.TxHashList.Length})")
                         .WithDescription($"Amount: {WalletUtilities.FormatBalance(ConfigService, txAmount)} {ConfigService.CoinSymbol}\nFee: {WalletUtilities.FormatBalance(ConfigService, txFee)} {ConfigService.CoinSymbol}\nTransaction hash: `{txHash}`");
 
-                    await ReplyDMAsync("", false, txEmbed.Build()).ConfigureAwait(false);
+                    await ReplyDMAsync(txEmbed.Build()).ConfigureAwait(false);
                 }
 
-                await Context.Message.AddReactionAsync(new Emoji("💰")).ConfigureAwait(false);
+                await AddReactionAsync("💰").ConfigureAwait(false);
             }
             catch (Exception ex)
             {

@@ -14,10 +14,10 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Bootstrap
 
         public void Initialize()
         {
-            System.Console.Title = "The Dialga Team Worktips Discord Bot (.Net Core)";
+            System.Console.Title = "Worktips Discord Bot (.Net Core)";
 
             LoggerService.LogMessage("==================================================");
-            LoggerService.LogMessage("The Dialga Team Worktips Discord Bot (.NET Core)");
+            LoggerService.LogMessage("Worktips Discord Bot (.NET Core)");
             LoggerService.LogMessage("==================================================");
         }
     }
