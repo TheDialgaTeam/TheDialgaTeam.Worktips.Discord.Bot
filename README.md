@@ -13,4 +13,3 @@ This is a multipurpose Worktips Discord Bot.
 ## Repository Dependencies Required
 1. [TheDialgaTeam.Cryptonote.Rpc](https://github.com/TheDialgaTeam/TheDialgaTeam.Cryptonote.Rpc)
 2. [TheDialgaTeam.Microsoft.Extensions.DependencyInjection](https://github.com/TheDialgaTeam/TheDialgaTeam.Microsoft.Extensions.DependencyInjection)
-3. [TheDialgaTeam.mscorlib](https://github.com/TheDialgaTeam/TheDialgaTeam.mscorlib)
