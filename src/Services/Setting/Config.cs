@@ -20,18 +20,22 @@
 
         public string DaemonHost { get; set; } = "127.0.0.1";
 
-        public ushort DaemonPort { get; set; } = 31022;
+        public ushort? DaemonPort { get; set; } = 31022;
 
         public string DaemonUsername { get; set; } = null;
 
         public string DaemonPassword { get; set; } = null;
 
+        public string DaemonPasswordProxyHeader { get; set; } = null;
+
         public string WalletHost { get; set; } = "127.0.0.1";
 
-        public ushort WalletPort { get; set; } = 31024;
+        public ushort? WalletPort { get; set; } = 31024;
 
         public string WalletUsername { get; set; } = null;
 
         public string WalletPassword { get; set; } = null;
+
+        public string WalletPasswordProxyHeader { get; set; } = null;
     }
 }

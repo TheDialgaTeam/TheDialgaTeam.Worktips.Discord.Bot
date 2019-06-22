@@ -27,19 +27,23 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Setting
 
         public string DaemonHost => Config.DaemonHost;
 
-        public ushort DaemonPort => Config.DaemonPort;
+        public ushort? DaemonPort => Config.DaemonPort;
 
         public string DaemonUsername => Config.DaemonUsername;
 
         public string DaemonPassword => Config.DaemonPassword;
 
+        public string DaemonPasswordProxyHeader => Config.DaemonPasswordProxyHeader;
+
         public string WalletHost => Config.WalletHost;
 
-        public ushort WalletPort => Config.WalletPort;
+        public ushort? WalletPort => Config.WalletPort;
 
         public string WalletUsername => Config.WalletUsername;
 
         public string WalletPassword => Config.WalletPassword;
+
+        public string WalletPasswordProxyHeader => Config.WalletPasswordProxyHeader;
 
         private Program Program { get; }
 
@@ -54,11 +58,12 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Setting
             Program = program;
             FilePathService = filePathService;
             LoggerService = loggerService;
-            Config = new Config();
         }
 
         public void Initialize()
         {
+            Config = new Config();
+
             if (!File.Exists(FilePathService.SettingFilePath))
             {
                 try
@@ -66,7 +71,6 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Setting
                     using (var streamWriter = new StreamWriter(new FileStream(FilePathService.SettingFilePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite)))
                     {
                         var jsonSerializer = new JsonSerializer { Formatting = Formatting.Indented };
-
                         jsonSerializer.Serialize(streamWriter, Config);
                     }
 
@@ -103,20 +107,10 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Setting
 
         public void Dispose()
         {
-            try
+            using (var streamWriter = new StreamWriter(new FileStream(FilePathService.SettingFilePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite)))
             {
-                using (var streamWriter = new StreamWriter(new FileStream(FilePathService.SettingFilePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite)))
-                {
-                    var jsonSerializer = new JsonSerializer { Formatting = Formatting.Indented };
-
-                    jsonSerializer.Serialize(streamWriter, Config);
-                }
-
-                LoggerService.LogMessage($"Saving Configuration file at: {FilePathService.SettingFilePath}");
-            }
-            catch (Exception ex)
-            {
-                LoggerService.LogErrorMessage(ex);
+                var jsonSerializer = new JsonSerializer { Formatting = Formatting.Indented };
+                jsonSerializer.Serialize(streamWriter, Config);
             }
         }
     }

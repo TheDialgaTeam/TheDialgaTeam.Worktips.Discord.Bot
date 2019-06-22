@@ -16,13 +16,15 @@ using TheDialgaTeam.Worktips.Discord.Bot.Services.Setting;
 
 namespace TheDialgaTeam.Worktips.Discord.Bot
 {
-    public sealed class Program
+    public sealed class Program : IDisposable
     {
         public ServiceProvider ServiceProvider { get; private set; }
 
         public CommandService CommandService { get; private set; }
 
         public CancellationTokenSource CancellationTokenSource { get; private set; }
+
+        public List<Task> TasksToAwait { get; private set; }
 
         public static async Task Main(string[] args)
         {
@@ -33,7 +35,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot
         private async Task Start(string[] args)
         {
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(this);
+            serviceCollection.AddInterfacesAndSelfAsSingleton(this);
             serviceCollection.AddInterfacesAndSelfAsSingleton<FilePathService>();
             serviceCollection.AddInterfacesAndSelfAsSingleton<LoggerService>();
             serviceCollection.AddInterfacesAndSelfAsSingleton<BootstrapService>();
@@ -43,40 +45,67 @@ namespace TheDialgaTeam.Worktips.Discord.Bot
             serviceCollection.AddInterfacesAndSelfAsSingleton<DiscordAppService>();
             serviceCollection.AddInterfacesAndSelfAsSingleton<ConsoleCommandService>();
 
-            CancellationTokenSource = new CancellationTokenSource();
-
             ServiceProvider = serviceCollection.BuildServiceProvider();
 
             CommandService = new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false });
             await CommandService.AddModulesAsync(Assembly.GetExecutingAssembly(), ServiceProvider).ConfigureAwait(false);
 
-            ServiceProvider.InitializeServices();
-
-            Console.CancelKeyPress += ConsoleOnCancelKeyPress;
-
-            var services = ServiceProvider.GetServices<IBackgroundLoopingTask>();
-            var awaitableTasks = new List<Task>();
-
-            foreach (var backgroundLoopingTask in services)
-                awaitableTasks.Add(backgroundLoopingTask.RunningTask);
+            CancellationTokenSource = new CancellationTokenSource();
+            TasksToAwait = new List<Task>();
 
             try
             {
-                await Task.WhenAll(awaitableTasks).ConfigureAwait(false);
-            }
-            finally
-            {
-                ServiceProvider.DisposeServices();
-                ServiceProvider.Dispose();
+                ServiceProvider.InitializeServices();
+                ServiceProvider.LateInitializeServices();
 
-                Environment.Exit(0);
+                Task.WaitAll(TasksToAwait.ToArray());
+
+                ServiceProvider.DisposeServices();
             }
+            catch (AggregateException ex)
+            {
+                var loggerService = ServiceProvider?.GetService<LoggerService>();
+
+                if (loggerService != null)
+                {
+                    foreach (var exception in ex.InnerExceptions)
+                    {
+                        if (exception is TaskCanceledException)
+                            continue;
+
+                        await loggerService.LogErrorMessageAsync(exception).ConfigureAwait(false);
+                    }
+                }
+
+                CancellationTokenSource?.Cancel();
+                ServiceProvider?.DisposeServices();
+                Environment.Exit(1);
+                return;
+            }
+            catch (Exception ex)
+            {
+                var loggerService = ServiceProvider?.GetService<LoggerService>();
+
+                if (loggerService != null)
+                    await loggerService.LogErrorMessageAsync(ex).ConfigureAwait(false);
+
+                CancellationTokenSource?.Cancel();
+                ServiceProvider?.DisposeServices();
+                Environment.Exit(1);
+                return;
+            }
+
+            Environment.Exit(0);
         }
 
-        private void ConsoleOnCancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        public void Dispose()
         {
-            e.Cancel = true;
-            CancellationTokenSource.Cancel();
+            ServiceProvider?.Dispose();
+            ((IDisposable) CommandService)?.Dispose();
+            CancellationTokenSource?.Dispose();
+
+            foreach (var task in TasksToAwait)
+                task.Dispose();
         }
     }
 }

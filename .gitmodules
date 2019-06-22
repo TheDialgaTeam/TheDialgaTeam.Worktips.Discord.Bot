@@ -1,0 +1,6 @@
+[submodule "TheDialgaTeam.Cryptonote.Rpc"]
+	path = TheDialgaTeam.Cryptonote.Rpc
+	url = https://github.com/TheDialgaTeam/TheDialgaTeam.Cryptonote.Rpc.git
+[submodule "TheDialgaTeam.Microsoft.Extensions.DependencyInjection"]
+	path = TheDialgaTeam.Microsoft.Extensions.DependencyInjection
+	url = https://github.com/TheDialgaTeam/TheDialgaTeam.Microsoft.Extensions.DependencyInjection.git

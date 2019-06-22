@@ -17,6 +17,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
         }
 
         [Command("Hashrate")]
+        [Alias("Hash")]
         [Summary("Get the network hashrate.")]
         public async Task HashrateAsync([Remainder] string _ = null)
         {
@@ -34,6 +35,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Discord.Modules
         }
 
         [Command("Difficulty")]
+        [Alias("Diff")]
         [Summary("Get the network difficulty. (analogous to the strength of the network)")]
         public async Task DifficultyAsync([Remainder] string _ = null)
         {

@@ -1,4 +1,6 @@
-﻿using TheDialgaTeam.Microsoft.Extensions.DependencyInjection;
+﻿using System.Reflection;
+using System.Runtime.Versioning;
+using TheDialgaTeam.Microsoft.Extensions.DependencyInjection;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Console;
 
 namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Bootstrap
@@ -14,10 +16,12 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Bootstrap
 
         public void Initialize()
         {
-            System.Console.Title = "Worktips Discord Bot (.Net Core)";
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            var frameworkVersion = Assembly.GetExecutingAssembly().GetCustomAttribute<TargetFrameworkAttribute>().FrameworkName;
+            System.Console.Title = $"Worktips Discord Bot v{version} {frameworkVersion}";
 
             LoggerService.LogMessage("==================================================");
-            LoggerService.LogMessage("Worktips Discord Bot (.NET Core)");
+            LoggerService.LogMessage($"Worktips Discord Bot v{version} {frameworkVersion}");
             LoggerService.LogMessage("==================================================");
         }
     }

@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>TheDialgaTeam.Worktips.Discord.Bot</AssemblyName>
+    <RootNamespace>TheDialgaTeam.Worktips.Discord.Bot</RootNamespace>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <PackageId>TheDialgaTeam.Worktips.Discord.Bot</PackageId>
+    <Version>0.0.1.0</Version>
+    <Authors>Yong Jian Ming</Authors>
+    <Company>The Dialga Team</Company>
+    <Product>TheDialgaTeam.Worktips.Discord.Bot</Product>
+    <Description>Worktips discord bot.</Description>
+    <PackageProjectUrl>https://github.com/TheDialgaTeam/TheDialgaTeam.Worktips.Discord.Bot</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/TheDialgaTeam/TheDialgaTeam.Worktips.Discord.Bot</RepositoryUrl>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="2.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.2.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.2.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TheDialgaTeam.Cryptonote.Rpc\src\TheDialgaTeam.Cryptonote.Rpc.csproj" />
+    <ProjectReference Include="..\TheDialgaTeam.Microsoft.Extensions.DependencyInjection\src\TheDialgaTeam.Microsoft.Extensions.DependencyInjection.csproj" />
+  </ItemGroup>
+
+</Project>

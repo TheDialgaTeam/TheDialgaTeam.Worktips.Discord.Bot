@@ -5,7 +5,6 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using TheDialgaTeam.Microsoft.Extensions.DependencyInjection;
-using TheDialgaTeam.mscorlib.System.Threading.Tasks;
 using TheDialgaTeam.Worktips.Discord.Bot.Discord;
 using TheDialgaTeam.Worktips.Discord.Bot.EntityFramework;
 using TheDialgaTeam.Worktips.Discord.Bot.Services.Console;
@@ -15,11 +14,9 @@ using TheDialgaTeam.Worktips.Discord.Bot.Services.Setting;
 
 namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
 {
-    public class DiscordAppService : IInitializable, IBackgroundLoopingTask, IDisposable
+    public class DiscordAppService : IInitializable, IDisposable
     {
         public DiscordAppClient DiscordAppClient { get; private set; }
-
-        public BackgroundLoopingTask RunningTask { get; private set; }
 
         private Program Program { get; }
 
@@ -42,6 +39,9 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
 
         public void Initialize()
         {
+            if (Program.CancellationTokenSource.IsCancellationRequested)
+                return;
+
             DiscordAppClient = new DiscordAppClient(ConfigService.BotToken, new DiscordSocketConfig { LogLevel = LogSeverity.Verbose });
             DiscordAppClient.Log += DiscordAppClientOnLog;
             DiscordAppClient.ShardReady += DiscordAppClientOnShardReady;
@@ -49,7 +49,14 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
 
             InitializeAsync().GetAwaiter().GetResult();
 
-            RunningTask = Task.Factory.StartNewBackgroundLoopingTask(async _ => { await DiscordAppClient.UpdateAsync().ConfigureAwait(false); }, Program.CancellationTokenSource.Token);
+            Program.TasksToAwait.Add(Task.Factory.StartNew(async () =>
+            {
+                while (!Program.CancellationTokenSource.IsCancellationRequested)
+                {
+                    await DiscordAppClient.UpdateAsync().ConfigureAwait(false);
+                    await Task.Delay(1000).ConfigureAwait(false);
+                }
+            }, Program.CancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current).Unwrap());
         }
 
         private async Task InitializeAsync()
@@ -57,21 +64,13 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
             if (Program.CancellationTokenSource.IsCancellationRequested)
                 return;
 
-            try
-            {
-                await DiscordAppClient.DiscordAppLoginAsync().ConfigureAwait(false);
-                await DiscordAppClient.DiscordAppStartAsync().ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                LoggerService.LogErrorMessage(ex);
-                Program.CancellationTokenSource.Cancel();
-            }
+            await DiscordAppClient.DiscordAppLoginAsync().ConfigureAwait(false);
+            await DiscordAppClient.DiscordAppStartAsync().ConfigureAwait(false);
         }
 
         private Task DiscordAppClientOnLog(DiscordAppClient discordAppClient, LogMessage logMessage)
         {
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 var botId = discordAppClient.DiscordShardedClient?.CurrentUser?.Id;
                 var botName = discordAppClient.DiscordShardedClient?.CurrentUser?.ToString();
@@ -80,33 +79,33 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
                 switch (logMessage.Severity)
                 {
                     case LogSeverity.Critical:
-                        LoggerService.LogMessage(message, ConsoleColor.Red);
+                        await LoggerService.LogMessageAsync(message, ConsoleColor.Red).ConfigureAwait(false);
                         break;
 
                     case LogSeverity.Error:
-                        LoggerService.LogMessage(message, ConsoleColor.Red);
+                        await LoggerService.LogMessageAsync(message, ConsoleColor.Red).ConfigureAwait(false);
                         break;
 
                     case LogSeverity.Warning:
-                        LoggerService.LogMessage(message, ConsoleColor.Yellow);
+                        await LoggerService.LogMessageAsync(message, ConsoleColor.Yellow).ConfigureAwait(false);
                         break;
 
                     case LogSeverity.Info:
-                        LoggerService.LogMessage(message);
+                        await LoggerService.LogMessageAsync(message).ConfigureAwait(false);
                         break;
 
                     case LogSeverity.Verbose:
-                        LoggerService.LogMessage(message);
+                        await LoggerService.LogMessageAsync(message).ConfigureAwait(false);
                         break;
 
                     case LogSeverity.Debug:
-                        LoggerService.LogMessage(message, ConsoleColor.Cyan);
+                        await LoggerService.LogMessageAsync(message, ConsoleColor.Cyan).ConfigureAwait(false);
                         break;
 
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-            });
+            }).ConfigureAwait(false);
 
             return Task.CompletedTask;
         }
@@ -116,7 +115,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
             Task.Run(async () =>
             {
                 await discordSocketClient.SetGameAsync($"@{discordAppClient.DiscordShardedClient.CurrentUser.Username} help").ConfigureAwait(false);
-                LoggerService.LogMessage($"{discordAppClient.DiscordShardedClient.CurrentUser}: Shard {discordSocketClient.ShardId + 1}/{discordAppClient.DiscordShardedClient.Shards.Count} is ready!", ConsoleColor.Green);
+                await LoggerService.LogMessageAsync($"{discordAppClient.DiscordShardedClient.CurrentUser}: Shard {discordSocketClient.ShardId + 1}/{discordAppClient.DiscordShardedClient.Shards.Count} is ready!", ConsoleColor.Green).ConfigureAwait(false);
 
                 try
                 {
@@ -139,7 +138,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
                 }
                 catch (Exception ex)
                 {
-                    LoggerService.LogErrorMessage(ex);
+                    await LoggerService.LogErrorMessageAsync(ex).ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
 
@@ -174,7 +173,7 @@ namespace TheDialgaTeam.Worktips.Discord.Bot.Services.Discord
                 }
                 catch (Exception ex)
                 {
-                    LoggerService.LogErrorMessage(ex);
+                    await LoggerService.LogErrorMessageAsync(ex).ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
 
